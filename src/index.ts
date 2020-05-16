@@ -7,8 +7,6 @@ import {generate} from './generator'
 import {normalize} from './normalizer'
 import {optimize} from './optimizer'
 import {parse} from './parser'
-import {error} from './utils'
-import {validate} from './validator'
 
 export {EnumJSONSchema, JSONSchema, NamedEnumJSONSchema, CustomTypeJSONSchema} from './types/JSONSchema'
 
@@ -67,7 +65,7 @@ export const DEFAULT_OPTIONS: Options = {
     trailingComma: 'none',
     useTabs: false
   },
-  unreachableDefinitions: false,
+  unreachableDefinitions: true,
   unknownAny: true
 }
 
@@ -77,31 +75,18 @@ export async function compile(url: RequestInfo, name: string, partialOptions: Pa
   const res = await fetch(url)
   const body = await res.json()
   const normalized = normalize(body, name, options)
-
-  console.log(3)
   const schema = await parser.dereference(normalized);
-
-  const errors = validate(schema, name)
-  if (errors.length) {
-    errors.forEach(_ => error(_))
-    throw new ValidationError()
-  }
-
-  console.log(1)
-  const parsed = parse(schema!.definitions!.environment as any, options)
-  parsed.standaloneName = name
-  console.log(2)
-
-  return format(generate(optimize(parsed), options), options)
+  const parsed = parse((schema as any), options);
+  return format(generate(optimize(parsed), options), options);
 }
 
 export class ValidationError extends Error {}
 
-;(async function () {
-  try {
-    const schema = await compile('http://site-api.lvh.me:3001/docs/site-api-hyperschema.json', 'SiteApiSchema')
-    console.log(schema);
-  } catch(e) {
-    console.log(e);
-  }
-})()
+// ;(async function () {
+//   try {
+//     const schema = await compile('http://site-api.lvh.me:3001/docs/site-api-hyperschema.json', 'SiteApiSchema')
+//     console.log(schema);
+//   } catch(e) {
+//     console.log(e);
+//   }
+// })()

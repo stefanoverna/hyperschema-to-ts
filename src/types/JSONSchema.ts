@@ -72,6 +72,18 @@ export interface JSONSchemaWithDefinitions extends NormalizedJSONSchema {
   }
 }
 
+export interface JSONSchemaLink {
+  rel: string;
+  schema?: NormalizedJSONSchema;
+  targetSchema?: NormalizedJSONSchema;
+  jobSchema?: NormalizedJSONSchema;
+}
+
+export interface JSONSchemaWithLinks extends NormalizedJSONSchema {
+  links: JSONSchemaLink[]
+}
+
+
 export interface CustomTypeJSONSchema extends NormalizedJSONSchema {
   tsType: string
 }

@@ -453,7 +453,7 @@ via the \`definition\` "${key}".`
               )
             }
 
-            return result;
+            return result
           })
           .flat(1)
       )
@@ -540,25 +540,30 @@ function getDefinitions(
     )
   }
 
-  if (prefix === 'data_') {
-    console.log('FUCK');
-  }
+  const realPrefix = prefix === 'properties_' ? '' : prefix
 
   if (isPlainObject(schema)) {
     return {
       ...(isSchema && hasDefinitions(schema)
-        ? Object.fromEntries(Object.entries(schema.definitions).map(([key, value]) => [prefix + key, value]))
-        : {}),
-      ...(isSchema && hasLinks(schema)
-        ? schema.links.reduce<Definitions>((prev, link) => ({...prev, ...findDefinitionsWithinLink(link, prefix)}), {})
+        ? Object.fromEntries(
+            Object.entries(schema.definitions).map(([key, value]) => {
+              return [`${realPrefix}${key}`, value]
+            })
+          )
         : {}),
       ...Object.keys(schema).reduce<Definitions>(
         (prev, cur) => ({
           ...prev,
-          ...getDefinitions(schema[cur], true, processed, `${cur}_`)
+          ...getDefinitions(schema[cur], true, processed, `${realPrefix}${cur}_`)
         }),
         {}
-      )
+      ),
+      ...(isSchema && hasLinks(schema)
+        ? schema.links.reduce<Definitions>(
+            (prev, link) => ({...prev, ...findDefinitionsWithinLink(link, realPrefix)}),
+            {}
+          )
+        : {})
     }
   }
   return {}
