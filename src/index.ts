@@ -1,5 +1,4 @@
 import parser from '@apidevtools/json-schema-ref-parser'
-import fetch, {RequestInfo} from 'node-fetch'
 import {merge} from 'lodash'
 import {Options as PrettierOptions} from 'prettier'
 import {format} from './formatter'
@@ -69,24 +68,11 @@ export const DEFAULT_OPTIONS: Options = {
   unknownAny: true
 }
 
-export async function compile(url: RequestInfo, name: string, partialOptions: Partial<Options> = {}): Promise<string> {
+export async function compile(body: any, name: string, partialOptions: Partial<Options> = {}): Promise<string> {
   const options = merge({}, DEFAULT_OPTIONS, partialOptions)
 
-  const res = await fetch(url)
-  const body = await res.json()
   const normalized = normalize(body, name, options)
-  const schema = await parser.dereference(normalized);
-  const parsed = parse((schema as any), options);
-  return format(generate(optimize(parsed), options), options);
+  const schema = await parser.dereference(normalized)
+  const parsed = parse(schema as any, options)
+  return format(generate(optimize(parsed), options), options)
 }
-
-export class ValidationError extends Error {}
-
-// ;(async function () {
-//   try {
-//     const schema = await compile('http://site-api.lvh.me:3001/docs/site-api-hyperschema.json', 'SiteApiSchema')
-//     console.log(schema);
-//   } catch(e) {
-//     console.log(e);
-//   }
-// })()
