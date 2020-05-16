@@ -14,7 +14,13 @@ import {
   TNamedInterface,
   TTuple
 } from './types/AST'
-import {JSONSchema, JSONSchemaWithDefinitions, SchemaSchema} from './types/JSONSchema'
+import {
+  JSONSchema,
+  JSONSchemaWithDefinitions,
+  JSONSchemaWithLinks,
+  JSONSchemaLink,
+  SchemaSchema
+} from './types/JSONSchema'
 import {generateName, log} from './utils'
 
 export type Processed = Map<JSONSchema | JSONSchema4Type, AST>
@@ -36,6 +42,9 @@ export function parse(
   }
 
   const definitions = getDefinitions(rootSchema)
+
+  // console.log(JSON.stringify(Object.keys(definitions)));
+
   const keyNameFromDefinition = findKey(definitions, _ => _ === schema)
 
   // Cache processed ASTs before they are actually computed, then update
@@ -175,6 +184,14 @@ function parseNonLiteral(
         standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
         type: 'STRING'
       })
+    case 'CONST_STRING':
+      return set({
+        comment: schema.description,
+        keyName,
+        standaloneName: standaloneName(schema, keyNameFromDefinition, usedNames),
+        constValue: schema.pattern!.replace(/\^/, '').replace(/\$/, ''),
+        type: 'CONST_STRING'
+      })
     case 'TYPED_ARRAY':
       if (Array.isArray(schema.items)) {
         // normalised to not be undefined
@@ -275,7 +292,7 @@ function standaloneName(
   keyNameFromDefinition: string | undefined,
   usedNames: UsedNames
 ): string | undefined {
-  const name = schema.title || schema.id || keyNameFromDefinition
+  const name = keyNameFromDefinition || schema.title || schema.id
   if (name) {
     return generateName(name, usedNames)
   }
@@ -393,6 +410,54 @@ via the \`definition\` "${key}".`
         }
       })
     )
+
+    if (hasLinks(schema)) {
+      asts = asts.concat(
+        schema.links
+          .map(link => {
+            const result = []
+
+            if (link.schema) {
+              result.push(
+                linkAst(link.schema, link.rel, 'schema', options, rootSchema, processed, usedNames, parentSchemaName)
+              )
+            }
+
+            if (link.targetSchema) {
+              result.push(
+                linkAst(
+                  link.targetSchema,
+                  link.rel,
+                  'targetSchema',
+                  options,
+                  rootSchema,
+                  processed,
+                  usedNames,
+                  parentSchemaName
+                )
+              )
+            }
+
+            if (link.jobSchema) {
+              result.push(
+                linkAst(
+                  link.jobSchema,
+                  link.rel,
+                  'jobSchema',
+                  options,
+                  rootSchema,
+                  processed,
+                  usedNames,
+                  parentSchemaName
+                )
+              )
+            }
+
+            return result;
+          })
+          .flat(1)
+      )
+    }
   }
 
   // handle additionalProperties
@@ -426,12 +491,41 @@ via the \`definition\` "${key}".`
   }
 }
 
+function linkAst(
+  schema: JSONSchema,
+  linkRel: string,
+  name: string,
+  options: Options,
+  rootSchema: JSONSchema,
+  processed: Processed,
+  usedNames: UsedNames,
+  parentSchemaName: string
+) {
+  const ast = parse(schema, options, rootSchema, name, true, processed, usedNames)
+  const comment = `This interface was referenced by \`${parentSchemaName}\`'s JSON-Schema
+via the \`${linkRel}.${name}\` link.`
+  ast.comment = ast.comment ? `${ast.comment}\n\n${comment}` : comment
+
+  return {
+    ast,
+    isPatternProperty: false,
+    isRequired: false,
+    isUnreachableDefinition: true,
+    keyName: name
+  }
+}
+
 type Definitions = {[k: string]: JSONSchema}
 
 /**
  * TODO: Memoize
  */
-function getDefinitions(schema: JSONSchema, isSchema = true, processed = new Set<JSONSchema>()): Definitions {
+function getDefinitions(
+  schema: JSONSchema,
+  isSchema = true,
+  processed = new Set<JSONSchema>(),
+  prefix: string = ''
+): Definitions {
   if (processed.has(schema)) {
     return {}
   }
@@ -445,13 +539,23 @@ function getDefinitions(schema: JSONSchema, isSchema = true, processed = new Set
       {}
     )
   }
+
+  if (prefix === 'data_') {
+    console.log('FUCK');
+  }
+
   if (isPlainObject(schema)) {
     return {
-      ...(isSchema && hasDefinitions(schema) ? schema.definitions : {}),
+      ...(isSchema && hasDefinitions(schema)
+        ? Object.fromEntries(Object.entries(schema.definitions).map(([key, value]) => [prefix + key, value]))
+        : {}),
+      ...(isSchema && hasLinks(schema)
+        ? schema.links.reduce<Definitions>((prev, link) => ({...prev, ...findDefinitionsWithinLink(link, prefix)}), {})
+        : {}),
       ...Object.keys(schema).reduce<Definitions>(
         (prev, cur) => ({
           ...prev,
-          ...getDefinitions(schema[cur], false, processed)
+          ...getDefinitions(schema[cur], true, processed, `${cur}_`)
         }),
         {}
       )
@@ -460,9 +564,31 @@ function getDefinitions(schema: JSONSchema, isSchema = true, processed = new Set
   return {}
 }
 
+function findDefinitionsWithinLink(link: JSONSchemaLink, prefix: string): Definitions {
+  const definitions: Definitions = {}
+
+  if (link.schema) {
+    definitions[prefix + link.rel + '_schema'] = link.schema
+  }
+
+  if (link.targetSchema) {
+    definitions[prefix + link.rel + '_target_schema'] = link.targetSchema
+  }
+
+  if (link.jobSchema) {
+    definitions[prefix + link.rel + '_job_schema'] = link.jobSchema
+  }
+
+  return definitions
+}
+
 /**
  * TODO: Reduce rate of false positives
  */
 function hasDefinitions(schema: JSONSchema): schema is JSONSchemaWithDefinitions {
   return 'definitions' in schema
+}
+
+function hasLinks(schema: JSONSchema): schema is JSONSchemaWithLinks {
+  return 'links' in schema
 }

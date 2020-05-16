@@ -193,6 +193,8 @@ function generateRawType(ast: AST, options: Options): string {
       return generateSetOperation(ast, options)
     case 'LITERAL':
       return JSON.stringify(ast.params)
+    case 'CONST_STRING':
+      return JSON.stringify(ast.constValue)
     case 'NUMBER':
       return 'number'
     case 'NULL':
