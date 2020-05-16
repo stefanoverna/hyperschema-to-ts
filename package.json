@@ -2,8 +2,12 @@
   "name": "hyperschema-to-ts",
   "version": "1.0.0",
   "description": "Compile JSON Hyper-Schema to TypeScript typings",
+  "main": "dist/src/index.js",
+  "typings": "dist/src/index.d.ts",
   "scripts": {
+    "clean": "rm -rf dist",
     "start": "ts-node src/index.ts",
+    "build": "npm run clean && mkdir dist && tsc -d",
     "prettier": "prettier --write \"src/**/*.ts\""
   },
   "license": "MIT",
