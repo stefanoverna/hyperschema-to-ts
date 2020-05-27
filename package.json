@@ -2,8 +2,8 @@
   "name": "hyperschema-to-ts",
   "version": "0.0.7",
   "description": "Compile JSON Hyper-Schema to TypeScript typings",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "typings": "dist/src/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
     "start": "ts-node src/index.ts",
