@@ -1,6 +1,6 @@
 {
   "name": "hyperschema-to-ts",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Compile JSON Hyper-Schema to TypeScript typings",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
