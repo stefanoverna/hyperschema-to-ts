@@ -42,8 +42,6 @@ export function parse(
 
   const definitions = getDefinitions(rootSchema)
 
-  // console.log(JSON.stringify(Object.keys(definitions)));
-
   const keyNameFromDefinition = findKey(definitions, _ => _ === schema)
 
   // Cache processed ASTs before they are actually computed, then update
@@ -450,6 +448,21 @@ via the \`definition\` "${key}".`
               )
             }
 
+            if (link.hrefSchema) {
+              result.push(
+                linkAst(
+                  link.hrefSchema,
+                  link.rel,
+                  'hrefSchema',
+                  options,
+                  rootSchema,
+                  processed,
+                  usedNames,
+                  parentSchemaName
+                )
+              )
+            }
+
             return result
           })
           .flat(1)
@@ -579,6 +592,10 @@ function findDefinitionsWithinLink(link: JSONSchemaLink, prefix: string): Defini
 
   if (link.jobSchema) {
     definitions[prefix + link.rel + '_job_schema'] = link.jobSchema
+  }
+
+  if (link.hrefSchema) {
+    definitions[prefix + link.rel + '_href_schema'] = link.hrefSchema
   }
 
   return definitions

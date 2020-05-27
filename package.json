@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.1",
+    "@types/node-fetch": "^2.5.7",
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.15",
     "prettier": "^2.0.5"
@@ -26,9 +27,11 @@
     "@typescript-eslint/eslint-plugin": "^2.30.0",
     "@typescript-eslint/parser": "^2.30.0",
     "husky": "^4.2.5",
+    "node-fetch": "^2.6.0",
     "np": "^6.2.3",
     "pretty-quick": "^2.0.1",
     "rimraf": "^3.0.2",
+    "ts-node": "^8.10.1",
     "typescript": "^3.8.3"
   },
   "husky": {

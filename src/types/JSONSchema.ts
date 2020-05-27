@@ -93,6 +93,7 @@ export interface JSONSchemaLink {
   schema?: NormalizedJSONSchema
   targetSchema?: NormalizedJSONSchema
   jobSchema?: NormalizedJSONSchema
+  hrefSchema?: NormalizedJSONSchema
 }
 
 export interface JSONSchemaWithLinks extends NormalizedJSONSchema {
