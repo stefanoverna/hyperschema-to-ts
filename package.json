@@ -8,6 +8,7 @@
     "clean": "rm -rf dist",
     "start": "ts-node src/index.ts",
     "build": "npm run clean && mkdir dist && tsc -d",
+    "prepublish": "npm run build",
     "prettier": "prettier --write \"src/**/*.ts\""
   },
   "license": "MIT",
