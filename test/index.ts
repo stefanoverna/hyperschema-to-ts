@@ -3,7 +3,7 @@ import {compile} from '../src/index'
 import {writeFileSync} from 'fs'
 
 async function getSchema() {
-  const url = 'https://site-api.datocms.com/docs/site-api-hyperschema.json'
+  const url = 'https://account-api.datocms.com/docs/account-api-hyperschema.json'
   const res = await fetch(url)
   return res.json()
 }

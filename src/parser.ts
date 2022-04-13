@@ -561,13 +561,15 @@ function getDefinitions(
             })
           )
         : {}),
-      ...Object.keys(schema).reduce<Definitions>(
-        (prev, cur) => ({
+      ...Object.keys(schema).reduce<Definitions>((prev, cur) => {
+        if (schema.$schema && cur === 'links') {
+          return prev
+        }
+        return {
           ...prev,
           ...getDefinitions(schema[cur], true, processed, `${realPrefix}${cur}_`)
-        }),
-        {}
-      ),
+        }
+      }, {}),
       ...(isSchema && hasLinks(schema)
         ? schema.links.reduce<Definitions>(
             (prev, link) => ({...prev, ...findDefinitionsWithinLink(link, realPrefix)}),
