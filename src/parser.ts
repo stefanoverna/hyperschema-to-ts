@@ -287,7 +287,7 @@ function standaloneName(
   keyNameFromDefinition: string | undefined,
   usedNames: UsedNames
 ): string | undefined {
-  const name = keyNameFromDefinition || schema.title || schema.id
+  const name = schema.id || keyNameFromDefinition || schema.title
   if (name) {
     return generateName(name, usedNames)
   }
