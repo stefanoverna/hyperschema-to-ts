@@ -20,7 +20,7 @@ import {
   JSONSchemaLink,
   SchemaSchema
 } from './types/JSONSchema'
-import {generateName} from './utils'
+import {generateName, toSafeString} from './utils'
 
 export type Processed = Map<JSONSchema | JSONSchema4Type, AST>
 
@@ -515,6 +515,7 @@ function linkAst(
   const comment = `This interface was referenced by \`${parentSchemaName}\`'s JSON-Schema
 via the \`${linkRel}.${name}\` link.`
   ast.comment = ast.comment ? `${ast.comment}\n\n${comment}` : comment
+  ast.aliases = [...(ast.aliases || []), toSafeString(`${parentSchemaName}_${linkRel}_${name}`)]
 
   return {
     ast,

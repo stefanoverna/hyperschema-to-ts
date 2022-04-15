@@ -344,7 +344,12 @@ function generateStandaloneInterface(ast: TNamedInterface, options: Options): st
     (ast.superTypes.length > 0
       ? `extends ${ast.superTypes.map(superType => toSafeString(superType.standaloneName)).join(', ')} `
       : '') +
-    generateInterface(ast, options)
+    generateInterface(ast, options) +
+    '\n' +
+    (ast.aliases
+      ?.filter(a => a !== toSafeString(ast.standaloneName))
+      .map(a => `export type ${a} = ${toSafeString(ast.standaloneName)};`)
+      .join('\n') || '')
   )
 }
 

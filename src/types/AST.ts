@@ -25,6 +25,7 @@ export interface AbstractAST {
   comment?: string
   keyName?: string
   standaloneName?: string
+  aliases?: string[]
   type: AST_TYPE
 }
 
